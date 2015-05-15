@@ -145,6 +145,11 @@ function cividiscount_civicrm_buildForm($fname, &$form) {
             'CRM_Contribute_Form_Contribution_Main',
             'CRM_Event_Form_ParticipantFeeSelection',
           ))) {
+    
+    if ($fname == 'CRM_Contribute_Form_Contribution_Main') {
+      $templatePath = realpath(dirname(__FILE__)."/templates/CRM/CiviDiscount");
+      CRM_Core_Region::instance('page-body')->add(array('template' => "{$templatePath}/Main.extra.tpl"));
+    }
 
     // Display the discount textfield for online events (including
     // pricesets) and memberships.
@@ -549,9 +554,8 @@ function cividiscount_civicrm_membershipTypeValues(&$form, &$membershipTypeValue
   $form->set('_discountInfo', NULL);
   $code = CRM_Utils_Request::retrieve('discountcode', 'String', $form, false, null, 'REQUEST');
   $discountCalculator = new CRM_CiviDiscount_DiscountCalculator('membership', NULL, $contact_id, $code, FALSE);
-  if (!empty($code)) {
-    $discounts = $discountCalculator->getDiscounts();
-  }
+
+  $discounts = $discountCalculator->getDiscounts();
   if(!empty($code) && empty($discounts)) {
     $form->set( 'discountCodeErrorMsg', ts('The discount code you entered is invalid.'));
   }
