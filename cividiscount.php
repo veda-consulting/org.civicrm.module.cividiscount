@@ -145,7 +145,8 @@ function cividiscount_civicrm_buildForm($fname, &$form) {
             'CRM_Contribute_Form_Contribution_Main',
             'CRM_Event_Form_ParticipantFeeSelection',
           ))) {
-   
+
+    
     // Display the discount textfield for online events (including
     // pricesets) and memberships.
     $ids = $memtypes = array();
