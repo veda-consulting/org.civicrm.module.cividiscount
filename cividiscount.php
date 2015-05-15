@@ -145,12 +145,7 @@ function cividiscount_civicrm_buildForm($fname, &$form) {
             'CRM_Contribute_Form_Contribution_Main',
             'CRM_Event_Form_ParticipantFeeSelection',
           ))) {
-    
-    if ($fname == 'CRM_Contribute_Form_Contribution_Main') {
-      $templatePath = realpath(dirname(__FILE__)."/templates/CRM/CiviDiscount");
-      CRM_Core_Region::instance('page-body')->add(array('template' => "{$templatePath}/Main.extra.tpl"));
-    }
-
+   
     // Display the discount textfield for online events (including
     // pricesets) and memberships.
     $ids = $memtypes = array();
