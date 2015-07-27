@@ -16,6 +16,7 @@ CREATE TABLE `cividiscount_item` (
      `amount_type` varchar(4) NOT NULL   COMMENT 'Type of discount, actual or percentage?',
      `count_max` int NOT NULL   COMMENT 'Max number of times this code can be used.',
      `count_use` int NOT NULL DEFAULT 0 COMMENT 'Number of times this code has been used.',
+     `pp_types` text    COMMENT 'Serialized list of payment types for which this code can be used',
      `events` text    COMMENT 'Serialized list of events for which this code can be used',
      `pricesets` text    COMMENT 'Serialized list of pricesets for which this code can be used',
      `memberships` text    COMMENT 'Serialized list of memberships for which this code can be used',

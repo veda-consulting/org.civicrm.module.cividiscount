@@ -69,8 +69,10 @@ class CRM_CiviDiscount_Form_Admin extends CRM_Admin_Form {
     $this->_multiValued = array(
       'memberships' => NULL,
       'events' => NULL,
-      'pricesets' => NULL
+      'pricesets' => NULL,
+      'pp_types'=> NULL
     );
+
 
     $this->select2style = array(
       'placeholder' => ts('- none -'),
@@ -192,7 +194,20 @@ class CRM_CiviDiscount_Form_Admin extends CRM_Admin_Form {
     $this->addElement('checkbox', 'discount_msg_enabled', ts('Display a message to users not eligible for this discount?'));
     $this->add('textarea', 'discount_msg', ts('Message to non-eligible users'), array('class' => 'big'));
 
-    // add memberships, events, pricesets
+    // add paymentProcessors, memberships, events, pricesets
+    $paymentProcessors = CRM_CiviDiscount_Utils::getPaymentProcessorTypes();
+    if (!empty($paymentProcessors)) {
+      $this->_multiValued['pp_types'] = $paymentProcessors;
+      $this->add('select',
+        'pp_types',
+        ts('Payment Types'),
+        $paymentProcessors,
+        FALSE,
+        $this->select2style
+      );
+    }
+
+
     $membershipTypes = CRM_Member_BAO_MembershipType::getMembershipTypes(FALSE);
     if (!empty($membershipTypes)) {
       $this->add('select',
@@ -299,6 +314,9 @@ class CRM_CiviDiscount_Form_Admin extends CRM_Admin_Form {
       $params['id'] = $this->_id;
     }
     $params['multi_valued'] = $this->_multiValued;
+
+    CRM_Core_Error::debug_var('multi_valued multi_valued', $this->_multiValued);
+
 
     if (isset($params['events']) && in_array(0, $params['events']) && count($params['events']) > 1) {
       CRM_Core_Session::setStatus(ts('You selected `any event` and specific events, specific events have been unset'));

@@ -30,6 +30,23 @@
  */
 class CRM_CiviDiscount_Utils {
 
+  static function getPaymentProcessorTypes() {
+    $pp_types = array();
+
+    $query = "SELECT id, name, title, payment_type
+      FROM civicrm_payment_processor_type
+      WHERE (is_active = 1)
+    ";
+
+    $processorResult = CRM_Core_DAO::executeQuery($query);
+    while ($processorResult->fetch()) {
+      $pp_types[$processorResult->id] = $processorResult->title;
+    }
+    
+    return $pp_types;
+
+  }
+
   static function getEvents() {
     $events = array();
     //whether we only want this date range is arguable but it is broader than the one in the core function

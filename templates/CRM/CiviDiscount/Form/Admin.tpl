@@ -116,6 +116,24 @@
         </table>
       </div>
     </fieldset>
+
+    {if $form.pp_types}
+      <div class="crm-accordion-wrapper {if $action eq 1}collapsed {/if}crm-discount-form-block-pp_types">
+        <div class="crm-accordion-header">
+          {ts}Discounts for Payment Types{/ts}
+        </div>
+        <div class="crm-accordion-body">
+          <table class="form-layout-compressed">
+            <tr class="crm-discount-item-form-block-pp_types">
+              <td class="label">{$form.pp_types.label} {help id="pp_types" title=$form.pp_types.label}</td>
+              <td>{$form.pp_types.html}<td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    {/if}
+
+
     {if $form.events}
       <div class="crm-accordion-wrapper {if $action eq 1}collapsed {/if}crm-discount-form-block-events">
         <div class="crm-accordion-header">

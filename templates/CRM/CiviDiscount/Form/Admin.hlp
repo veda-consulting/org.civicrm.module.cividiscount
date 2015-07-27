@@ -57,6 +57,12 @@
   </p>
 {/htxt}
 
+{htxt id="pp_types"}
+  <p>
+    {ts}This discount can be used on the selected Payment Type(s).{/ts}
+  </p>
+{/htxt}
+
 {htxt id="events"}
   <p>
     {ts}This discount can be used on the selected event(s). Only active, public and current/future events are listed.{/ts}

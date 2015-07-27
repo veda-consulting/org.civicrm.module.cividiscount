@@ -166,6 +166,7 @@ function cividiscount_civicrm_buildForm($fname, &$form) {
       $addDiscountField = $discountCalculator->isShowDiscountCodeField();
     }
     elseif ($fname == 'CRM_Contribute_Form_Contribution_Main') {
+      
       $ids = _cividiscount_get_discounted_membership_ids();
       if(!empty($form->_membershipBlock['membership_types'])){
         $memtypes = explode(',', $form->_membershipBlock['membership_types']);
@@ -270,6 +271,8 @@ function cividiscount_civicrm_validateForm($name, &$fields, &$files, &$form, &$e
  * @param $amounts
  */
 function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
+  
+  
   if (( !$form->getVar('_action')
         || ($form->getVar('_action') & CRM_Core_Action::PREVIEW)
         || ($form->getVar('_action') & CRM_Core_Action::ADD)
@@ -284,6 +287,24 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
     ))) {
       return;
     }
+
+    /*
+    Check if a payment type is set for discounts
+    */
+   //CRM_Core_Error::debug_var('form  Details ', $form);
+
+   $payids =  array();
+   $payids = _cividiscount_get_discounted_paymentProcessor_type_ids();
+   $selectedProcessorValue = $form->_paymentProcessor['payment_processor_type_id'];
+   CRM_Core_Error::debug_var('discounted payment type ids', $payids);
+
+   if (!empty($payids)) {
+      if (!in_array($selectedProcessorValue, $payids)) {
+        echo "Sorry! this payment type does not provide discount!";
+        return;
+      }
+   } 
+
 
     $contact_id = _cividiscount_get_form_contact_id($form);
     $autodiscount = FALSE;
@@ -337,6 +358,7 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
      if (!empty($code) && empty($discounts)) {
        $form->set( 'discountCodeErrorMsg', ts('The discount code you entered is invalid.'));
     }
+
 
     if (empty($discounts)) {
       // Check if a discount is available
@@ -405,6 +427,7 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
         //this was set to return but that doesn't make sense as there might be another discount
         continue;
       }
+
 
       $discountApplied = FALSE;
       if (!empty($autodiscount) || !empty($code)) {
@@ -823,6 +846,7 @@ function cividiscount_civicrm_pre($op, $name, $id, &$obj) {
  * Returns an array of all discount codes.
  */
 function _cividiscount_get_discounts() {
+  CRM_Core_Error::debug_var('get discounts',CRM_CiviDiscount_BAO_Item::getValidDiscounts());
   return CRM_CiviDiscount_BAO_Item::getValidDiscounts();
 }
 
@@ -838,7 +862,6 @@ function _cividiscount_get_items_from_discounts($discounts, $key, $include_autod
       }
     }
   }
-
   return $items;
 }
 
@@ -857,6 +880,13 @@ function _cividiscount_get_discounted_membership_ids() {
 }
 
 /**
+ * Returns an array of all discountable payment processor type ids.
+ */
+ function _cividiscount_get_discounted_paymentProcessor_type_ids() {
+  return _cividiscount_get_items_from_discounts(_cividiscount_get_discounts(), 'pp_types');
+ }
+
+/**
  * Get discounts that apply to at least one of the specified memberships.
  */
 function _cividiscount_filter_membership_discounts($discounts, $membershipTypeValues) {
@@ -872,10 +902,13 @@ function _cividiscount_filter_membership_discounts($discounts, $membershipTypeVa
   return $tempDiscounts;
 }
 
+
 /**
  * Calculate either a monetary or percentage discount.
  */
 function _cividiscount_calc_discount($amount, $label, $discount, $autodiscount, $currency = 'USD') {
+
+
   $title = $autodiscount ? 'Member Discount' : "Discount {$discount['code']}";
   if ($discount['amount_type'] == '2') {
     $newamount = CRM_Utils_Rule::cleanMoney($amount) - CRM_Utils_Rule::cleanMoney($discount['amount']);

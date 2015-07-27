@@ -166,7 +166,8 @@ class CRM_CiviDiscount_Page_View extends CRM_Core_Page {
       'autodiscount' => NULL,
       'memberships' => NULL,
       'events' => NULL,
-      'pricesets' => NULL
+      'pricesets' => NULL,
+      'pp_types' => NULL
     );
 
     foreach ($this->_multiValued as $mv => $info) {
@@ -185,6 +186,12 @@ class CRM_CiviDiscount_Page_View extends CRM_Core_Page {
 
     require_once 'CRM/CiviDiscount/Utils.php';
     require_once 'CRM/Member/BAO/MembershipType.php';
+
+    if (array_key_exists('pp_types', $defaults)) {
+      $pp_types = CRM_CiviDiscount_Utils::getPaymentProcessorTypes();
+      $defaults['pp_types'] = CRM_CiviDiscount_Utils::getIdsTitles($defaults['pp_types'], $pp_types);
+      $this->assign('pp_types', $defaults['pp_types']);
+    }
 
     if (array_key_exists('events', $defaults)) {
       $events = CRM_CiviDiscount_Utils::getEvents();

@@ -152,6 +152,7 @@ class CRM_CiviDiscount_BAO_Item extends CRM_CiviDiscount_DAO_Item {
     description,
     amount,
     amount_type,
+    pp_types,
     events,
     pricesets,
     memberships,
@@ -196,6 +197,7 @@ class CRM_CiviDiscount_BAO_Item extends CRM_CiviDiscount_DAO_Item {
     $filters = json_decode($discount['filters'], TRUE);
     // Expand set-valued fields.
     $fields = array(
+      'pp_types' => 'pp_type',
       'events' => 'event',
       'pricesets' => 'price_set',
       'memberships' => 'membership'
