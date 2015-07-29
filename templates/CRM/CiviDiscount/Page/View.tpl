@@ -81,6 +81,14 @@
       </td>
     </tr>
     <tr>
+      <td class="label">{ts}Payment Types{/ts}</td>
+      <td>
+        {foreach from=$pp_types key=k item=v}
+          {$v} <br />
+        {/foreach}
+      </td>
+    </tr>
+    <tr>
       <td class="label">{ts}Events{/ts}</td>
       <td>
         {foreach from=$events key=k item=v}

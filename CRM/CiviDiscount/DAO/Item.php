@@ -127,6 +127,12 @@ class CRM_CiviDiscount_DAO_Item extends CRM_Core_DAO {
    *
    * @var text
    */
+  public $pp_types;
+  /**
+   * Serialized list of paymentProcessors for which this code can be used
+   *
+   * @var text
+   */
   public $events;
   /**
    * Serialized list of pricesets for which this code can be used
@@ -274,6 +280,11 @@ class CRM_CiviDiscount_DAO_Item extends CRM_Core_DAO {
           'title' => ts('Count Use'),
           'required' => TRUE,
           'default' => 0,
+        ),
+        'pp_types' => array(
+          'name' => 'pp_types',
+          'type' => CRM_Utils_Type::T_TEXT,
+          'title' => ts('Payment Processor Types'),
         ),
         'events' => array(
           'name' => 'events',
