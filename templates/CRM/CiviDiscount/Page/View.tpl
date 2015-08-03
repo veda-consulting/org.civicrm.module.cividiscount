@@ -81,6 +81,10 @@
       </td>
     </tr>
     <tr>
+      <td class="label">{ts}Discount Term{/ts}</td>
+      <td>{$discount_term} months</td>
+    </tr>
+    <tr>
       <td class="label">{ts}Payment Types{/ts}</td>
       <td>
         {foreach from=$pp_types key=k item=v}

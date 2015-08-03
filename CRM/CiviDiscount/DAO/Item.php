@@ -127,6 +127,12 @@ class CRM_CiviDiscount_DAO_Item extends CRM_Core_DAO {
    *
    * @var text
    */
+  public $discount_term;
+  /**
+   * Set End date for this discount until next renewal.
+   *
+   * @var int
+   */
   public $pp_types;
   /**
    * Serialized list of paymentProcessors for which this code can be used
@@ -280,6 +286,13 @@ class CRM_CiviDiscount_DAO_Item extends CRM_Core_DAO {
           'title' => ts('Count Use'),
           'required' => TRUE,
           'default' => 0,
+        ),
+        'discount_term' => array(
+          'name' => 'discount_term',
+          'type' => CRM_Utils_Type::T_STRING,
+          'title' => ts('Dsicount Term'),
+          'maxlength' => 4,
+          'size' => CRM_Utils_Type::FOUR,
         ),
         'pp_types' => array(
           'name' => 'pp_types',

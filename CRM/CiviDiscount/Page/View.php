@@ -146,6 +146,7 @@ class CRM_CiviDiscount_Page_View extends CRM_Core_Page {
     $this->assign('count_use', $defaults['count_use']);
     $this->assign('count_max', $defaults['count_max']);
     $this->assign('is_active', $defaults['is_active']);
+    $this->assign('discount_term', $defaults['discount_term']);
 
     if (array_key_exists('expire_on', $defaults)) {
       $this->assign('expire_on', $defaults['expire_on']);

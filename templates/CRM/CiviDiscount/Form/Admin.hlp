@@ -57,6 +57,12 @@
   </p>
 {/htxt}
 
+{htxt id="discount_term"}
+  <p>
+    {ts}Select discount valid period until the next renewal date.{/ts}
+  </p>
+{/htxt}
+
 {htxt id="pp_types"}
   <p>
     {ts}This discount can be used on the selected Payment Type(s).{/ts}

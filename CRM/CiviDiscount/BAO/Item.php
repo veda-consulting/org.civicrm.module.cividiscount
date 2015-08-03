@@ -60,6 +60,7 @@ class CRM_CiviDiscount_BAO_Item extends CRM_CiviDiscount_DAO_Item {
     $item->description = $params['description'];
     $item->amount = $params['amount'];
     $item->amount_type = $params['amount_type'];
+    $item->discount_term = $params['discount_term'];
     $item->count_max = $params['count_max'];
     $item->discount_msg = $params['discount_msg'];
     $item->filters = json_encode($params['filters']);
@@ -152,6 +153,7 @@ class CRM_CiviDiscount_BAO_Item extends CRM_CiviDiscount_DAO_Item {
     description,
     amount,
     amount_type,
+    discount_term,
     pp_types,
     events,
     pricesets,
