@@ -194,6 +194,22 @@ class CRM_CiviDiscount_Form_Admin extends CRM_Admin_Form {
     $this->addElement('checkbox', 'discount_msg_enabled', ts('Display a message to users not eligible for this discount?'));
     $this->add('textarea', 'discount_msg', ts('Message to non-eligible users'), array('class' => 'big'));
 
+    // add membership renewal period
+    $this->add('select', 'discount_term', NULL,
+      array(
+        0 => ts('--none--'),
+        1 => ts('1 month'),
+        2 => ts('2 months'),
+        3 => ts('3 months'),
+        4 => ts('4 months'),
+        5 => ts('5 months'),
+        6 => ts('6 months'),
+        12 => ts('12 months'),
+        18 => ts('18 months'),
+        24 => ts('24 months')
+      ),
+      FALSE);
+
     // add paymentProcessors, memberships, events, pricesets
     $paymentProcessors = CRM_CiviDiscount_Utils::getPaymentProcessorTypes();
     if (!empty($paymentProcessors)) {

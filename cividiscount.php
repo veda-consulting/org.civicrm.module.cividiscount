@@ -231,7 +231,7 @@ function cividiscount_civicrm_validateForm($name, &$fields, &$files, &$form, &$e
   // _discountInfo is assigned in cividiscount_civicrm_buildAmount() or
   // cividiscount_civicrm_membershipTypeValues() when a discount is used.
   $discountInfo = $form->get('_discountInfo');
-
+  
   $code = trim(CRM_Utils_Request::retrieve('discountcode', 'String', $form, false, null, 'REQUEST'));
 
   if ((!$discountInfo || !$discountInfo['autodiscount']) && trim($code) != '') {
@@ -288,23 +288,26 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
       return;
     }
 
+   // Don't provide Discount if the logged in user already subscribed to any membership types in the form
+    $currentMemberships = $form->_currentMemberships;
+    if (!empty($currentMemberships)) {
+      echo "Sorry! you have already used discount!";
+        return;
+    }
+
     /*
     Check if a payment type is set for discounts
     */
-   //CRM_Core_Error::debug_var('form  Details ', $form);
-
    $payids =  array();
    $payids = _cividiscount_get_discounted_paymentProcessor_type_ids();
    $selectedProcessorValue = $form->_paymentProcessor['payment_processor_type_id'];
-   CRM_Core_Error::debug_var('discounted payment type ids', $payids);
 
    if (!empty($payids)) {
       if (!in_array($selectedProcessorValue, $payids)) {
         echo "Sorry! this payment type does not provide discount!";
         return;
       }
-   } 
-
+   }
 
     $contact_id = _cividiscount_get_form_contact_id($form);
     $autodiscount = FALSE;
@@ -312,6 +315,7 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
     $psid = $form->get('priceSetId');
     $ps = $form->get('priceSet');
     $v = $form->getVar('_values');
+
 
     $code = trim(CRM_Utils_Request::retrieve('discountcode', 'String', $form, false, null, 'REQUEST'));
     if (!array_key_exists('discountcode', $form->_submitValues)
@@ -549,7 +553,6 @@ function _cividiscount_get_form_contact_id($form) {
       }
     }
   }
-
   return $contact_id;
 }
 
@@ -700,6 +703,33 @@ function cividiscount_civicrm_postProcess($class, &$form) {
     civicrm_api3('DiscountTrack', 'create', $discountParams);
   }
 
+  // set end date only for the signup
+  $current_memberships = $form->_currentMemberships;
+  $memtypes = array_keys($form->_membershipTypeValues);
+  if (in_array($class, array(
+    'CRM_Contribute_Form_Contribution_Confirm',
+    'CRM_Member_Form_Membership'
+  ))) {
+    if (empty($current_memberships)) {
+      _cividiscount_set_end_date_for_membership($params, $discount);
+    }
+  }
+}
+
+//Set end date for membership signups, if any discount term is found
+function _cividiscount_set_end_date_for_membership($params, $discount){
+  $term = $discount['discount_term'];
+  $membershipID = $params['membershipID'];
+  // Change end date if any term has been set  
+  if ($term > 0) {
+    $result = civicrm_api3('Membership', 'get', array('return' => "start_date", 'id' =>$membershipID ));
+    $start_date = $result['values'][$membershipID]['start_date'];
+    $start_date = date_create($start_date);
+    $end_date = date_add($start_date, date_interval_create_from_date_string("$term month"));
+    $end_date = date_format($end_date, 'Y-m-d');
+
+    civicrm_api3('Membership', 'create', array('id' => $membershipID, 'end_date' => $end_date ));
+  }
 }
 
 /**
@@ -846,7 +876,6 @@ function cividiscount_civicrm_pre($op, $name, $id, &$obj) {
  * Returns an array of all discount codes.
  */
 function _cividiscount_get_discounts() {
-  CRM_Core_Error::debug_var('get discounts',CRM_CiviDiscount_BAO_Item::getValidDiscounts());
   return CRM_CiviDiscount_BAO_Item::getValidDiscounts();
 }
 
@@ -981,7 +1010,6 @@ WHERE {$entityTableClause} AND contact_id = $cid";
     }
     $discountEntries[] = array('id' => $dao->id, 'item_id' => $dao->item_id);
   }
-
   return $discountEntries;
 }
 
@@ -1182,3 +1210,4 @@ function cividiscount_civicrm_entityTypes(&$entityTypes) {
     'table' => 'cividiscount_item'
   );
 }
+

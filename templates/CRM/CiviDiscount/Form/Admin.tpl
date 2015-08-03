@@ -117,6 +117,22 @@
       </div>
     </fieldset>
 
+    {if $form.discount_term}
+      <div class="crm-accordion-wrapper {if $action eq 1}collapsed {/if}crm-discount-form-block-discount_term">
+        <div class="crm-accordion-header">
+          {ts}Discount term{/ts}
+        </div>
+        <div class="crm-accordion-body">
+          <table class="form-layout-compressed">
+            <tr class="crm-discount-item-form-block-discount_term">
+              <td class="label">{$form.discount_term.label} {help id="discount_term" title=$form.discount_term.label}</td>
+              <td>{$form.discount_term.html}<td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    {/if}
+
     {if $form.pp_types}
       <div class="crm-accordion-wrapper {if $action eq 1}collapsed {/if}crm-discount-form-block-pp_types">
         <div class="crm-accordion-header">
