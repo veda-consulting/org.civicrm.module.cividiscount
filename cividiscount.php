@@ -333,7 +333,7 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
     
    // // Don't provide Discount if the logged in user already subscribed to any membership types in the form
     $currentMemberships = $form->_currentMemberships;
-      if logged in
+      //if logged in
     if (!empty($currentMemberships)) {
       $new_member = FALSE;
     }else{
