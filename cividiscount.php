@@ -125,14 +125,13 @@ function cividiscount_civicrm_buildForm($fname, &$form) {
   if ( $snippet == 4 || ( $form->getVar('_action') && ($form->getVar('_action') & CRM_Core_Action::DELETE ) ) ) {
     return false;
   }
-
   // Display discount textfield for offline membership/events
   if (in_array($fname, array(
         'CRM_Contribute_Form_Contribution',
         'CRM_Event_Form_Participant',
         'CRM_Member_Form_Membership',
         'CRM_Member_BAO_Membership',
-        'CRM_Member_Form_MembershipRenewal'
+        // 'CRM_Member_Form_MembershipRenewal'  // no discounts if it is a renewal
       ))) {
 
     if ($form->getVar('_single') == 1 || in_array($form->getVar('_context'), array('membership', 'standalone'))) {
@@ -257,6 +256,51 @@ function cividiscount_civicrm_validateForm($name, &$fields, &$files, &$form, &$e
   }
 }
 
+
+/* If a contact is already subscribed and renewing the subscription
+    don't provide discount
+    */
+function validate_email_for_discount($form){
+    $new_member = TRUE;
+
+    $submitted_email = $form->_submitValues['email-5'];
+
+    if (!isset($submitted_email)) {
+      return $new_member;
+    }
+    
+    $result = civicrm_api3('Email', 'get', array('return' => "contact_id", 'email' => $submitted_email));
+    $id = $result['id'];
+    $contact_id = $result['values'][$id]['contact_id'];
+   
+    if (isset($contact_id)) {
+      $result = civicrm_api3('Membership', 'get', array('sequential' => 1, 'contact_id' => $contact_id));
+      $membership_values  = $result['values'];
+    }
+
+    if (empty($membership_values)) {
+      return $new_member;
+    }
+    
+    $subscribed_ids = array();
+    foreach ($membership_values as $value) {
+      $membership_type_id = $value['membership_type_id'];
+      array_push($subscribed_ids, $membership_type_id);
+    }
+
+    $membership_types = $form->_membershipTypeValues;
+    $membership_ids_in_form = array();
+    foreach ($form->_membershipTypeValues as $value) {
+      $membership_type_id = $value['id'];
+      array_push($membership_ids_in_form, $membership_type_id);
+    }
+
+    if (array_intersect($subscribed_ids, $membership_ids_in_form)) {
+      $new_member = FALSE;
+    }
+    return $new_member;
+}
+
 /**
  * Implementation of hook_civicrm_buildAmount()
  *
@@ -272,7 +316,6 @@ function cividiscount_civicrm_validateForm($name, &$fields, &$files, &$form, &$e
  */
 function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
   
-  
   if (( !$form->getVar('_action')
         || ($form->getVar('_action') & CRM_Core_Action::PREVIEW)
         || ($form->getVar('_action') & CRM_Core_Action::ADD)
@@ -287,12 +330,15 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
     ))) {
       return;
     }
-
-   // Don't provide Discount if the logged in user already subscribed to any membership types in the form
+    
+   // // Don't provide Discount if the logged in user already subscribed to any membership types in the form
     $currentMemberships = $form->_currentMemberships;
+      if logged in
     if (!empty($currentMemberships)) {
-      echo "Sorry! you have already used discount!";
-        return;
+      $new_member = FALSE;
+    }else{
+      // if not logged in
+      $new_member = validate_email_for_discount($form);
     }
 
     /*
@@ -301,13 +347,6 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
    $payids =  array();
    $payids = _cividiscount_get_discounted_paymentProcessor_type_ids();
    $selectedProcessorValue = $form->_paymentProcessor['payment_processor_type_id'];
-
-   if (!empty($payids)) {
-      if (!in_array($selectedProcessorValue, $payids)) {
-        echo "Sorry! this payment type does not provide discount!";
-        return;
-      }
-   }
 
     $contact_id = _cividiscount_get_form_contact_id($form);
     $autodiscount = FALSE;
@@ -353,6 +392,18 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
             return;
           }
         }
+      }
+    }
+
+    if (!$new_member && !empty($code)) {
+      echo "Sorry! Discount is not applicable for renewal!";
+      return;
+    }
+
+    if (!empty($payids) && !empty($code)) {
+      if (!in_array($selectedProcessorValue, $payids)) {
+        echo "Sorry! This payment type does not provide discount!";
+        return;
       }
     }
 
@@ -703,16 +754,12 @@ function cividiscount_civicrm_postProcess($class, &$form) {
     civicrm_api3('DiscountTrack', 'create', $discountParams);
   }
 
-  // set end date only for the signup
-  $current_memberships = $form->_currentMemberships;
-  $memtypes = array_keys($form->_membershipTypeValues);
+  // set end date for the signup
   if (in_array($class, array(
     'CRM_Contribute_Form_Contribution_Confirm',
     'CRM_Member_Form_Membership'
-  ))) {
-    if (empty($current_memberships)) {
-      _cividiscount_set_end_date_for_membership($params, $discount);
-    }
+  ))) {    
+    _cividiscount_set_end_date_for_membership($params, $discount);
   }
 }
 
@@ -722,13 +769,17 @@ function _cividiscount_set_end_date_for_membership($params, $discount){
   $membershipID = $params['membershipID'];
   // Change end date if any term has been set  
   if ($term > 0) {
-    $result = civicrm_api3('Membership', 'get', array('return' => "start_date", 'id' =>$membershipID ));
-    $start_date = $result['values'][$membershipID]['start_date'];
-    $start_date = date_create($start_date);
-    $end_date = date_add($start_date, date_interval_create_from_date_string("$term month"));
-    $end_date = date_format($end_date, 'Y-m-d');
+    $result = civicrm_api3('Membership', 'get', array('return' => "start_date,join_date", 'id' =>$membershipID ));
+    $join_date = $result['values'][$membershipID]['join_date'];
+    $today = date("Y-m-d");
+    if ($join_date >= $today) {
+      $start_date = $result['values'][$membershipID]['start_date'];
+      $start_date = date_create($start_date);
+      $end_date = date_add($start_date, date_interval_create_from_date_string("$term month"));
+      $end_date = date_format($end_date, 'Y-m-d');
 
-    civicrm_api3('Membership', 'create', array('id' => $membershipID, 'end_date' => $end_date ));
+      civicrm_api3('Membership', 'create', array('id' => $membershipID, 'end_date' => $end_date ));
+    }
   }
 }
 
