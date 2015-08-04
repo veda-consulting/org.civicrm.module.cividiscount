@@ -33,14 +33,14 @@ class CRM_CiviDiscount_Utils {
   static function getPaymentProcessorTypes() {
     $pp_types = array();
 
-    $query = "SELECT id, name, title, payment_type
-      FROM civicrm_payment_processor_type
-      WHERE (is_active = 1)
+    $query = "SELECT id, payment_processor_type_id, name, payment_type
+      FROM civicrm_payment_processor
+      WHERE (is_test = 0)
     ";
 
     $processorResult = CRM_Core_DAO::executeQuery($query);
     while ($processorResult->fetch()) {
-      $pp_types[$processorResult->id] = $processorResult->title;
+      $pp_types[$processorResult->payment_processor_type_id] = $processorResult->name;
     }
     
     return $pp_types;
