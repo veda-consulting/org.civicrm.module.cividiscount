@@ -269,7 +269,11 @@ function validate_email_for_discount($form){
       return $new_member;
     }
     
-    $result = civicrm_api3('Email', 'get', array('return' => "contact_id", 'email' => $submitted_email));
+    $result = civicrm_api3('Email', 'get', array(
+      'return' => "contact_id",
+      'email' => $submitted_email,
+      'is_primary' => 1,
+    ));
     $id = $result['id'];
     $contact_id = $result['values'][$id]['contact_id'];
    
