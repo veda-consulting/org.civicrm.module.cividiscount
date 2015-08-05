@@ -333,7 +333,7 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
     
    // // Don't provide Discount if the logged in user already subscribed to any membership types in the form
     $currentMemberships = $form->_currentMemberships;
-      if logged in
+      //if logged in
     if (!empty($currentMemberships)) {
       $new_member = FALSE;
     }else{
@@ -689,11 +689,15 @@ function cividiscount_civicrm_postProcess($class, &$form) {
 
   $discount = $discountInfo['discount'];
   $params = $form->getVar('_params');
+  $term = $discount['discount_term'];
+  
   $discountParams = array(
     'item_id' => $discount['id'],
     'description' => CRM_Utils_Array::value('amount_level', $params) . " " . CRM_Utils_Array::value('description', $params),
     'contribution_id' => CRM_Utils_Array::value('contributionID', $params),
   );
+
+
   // Online event registration.
   // Note that CRM_Event_Form_Registration_Register is an intermediate form.
   // CRM_Event_Form_Registration_Confirm completes the transaction.
@@ -704,6 +708,9 @@ function cividiscount_civicrm_postProcess($class, &$form) {
     // Note that CRM_Contribute_Form_Contribution_Main is an intermediate form.
     // CRM_Contribute_Form_Contribution_Confirm completes the transaction.
     _cividiscount_consume_discount_code_for_online_contribution($params, $discountParams, $discount['memberships']);
+    // set end date for discounted online membership signups
+    $membershipID = $params['membershipID'];
+    _cividiscount_set_end_date_for_membership($membershipID, $term);
   }
   else {
     $contribution_id = NULL;
@@ -746,6 +753,9 @@ function cividiscount_civicrm_postProcess($class, &$form) {
 
       $membership = _cividiscount_get_membership($entity_id);
       $discountParams['contact_id'] = $membership['contact_id'];
+      // set end date for discounted offline membership signups
+      $membershipID = $discountParams['entity_id'];
+      _cividiscount_set_end_date_for_membership($membershipID, $term);
     }
     else {
       $discountParams['entity_table'] = 'civicrm_contribution';
@@ -753,25 +763,16 @@ function cividiscount_civicrm_postProcess($class, &$form) {
     }
     civicrm_api3('DiscountTrack', 'create', $discountParams);
   }
-
-  // set end date for the signup
-  if (in_array($class, array(
-    'CRM_Contribute_Form_Contribution_Confirm',
-    'CRM_Member_Form_Membership'
-  ))) {    
-    _cividiscount_set_end_date_for_membership($params, $discount);
-  }
 }
 
-//Set end date for membership signups, if any discount term is found
-function _cividiscount_set_end_date_for_membership($params, $discount){
-  $term = $discount['discount_term'];
-  $membershipID = $params['membershipID'];
+//Set end date for discounted membership signups, if any discount term is assinged.
+function _cividiscount_set_end_date_for_membership($membershipID, $term){
   // Change end date if any term has been set  
   if ($term > 0) {
     $result = civicrm_api3('Membership', 'get', array('return' => "start_date,join_date", 'id' =>$membershipID ));
     $join_date = $result['values'][$membershipID]['join_date'];
     $today = date("Y-m-d");
+  
     if ($join_date >= $today) {
       $start_date = $result['values'][$membershipID]['start_date'];
       $start_date = date_create($start_date);
