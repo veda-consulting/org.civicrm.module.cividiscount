@@ -263,15 +263,13 @@ function cividiscount_civicrm_validateForm($name, &$fields, &$files, &$form, &$e
 function validate_email_for_discount($form){
     $new_member = TRUE;
 
-    $submitted_email = $form->_submitValues['email-5'];
-
-    if (!isset($submitted_email)) {
+    if (!isset($form->_submitValues['email-5'])) {
       return $new_member;
     }
     
     $result = civicrm_api3('Email', 'get', array(
       'return' => "contact_id",
-      'email' => $submitted_email,
+      'email' => $form->_submitValues['email-5'],
       'is_primary' => 1,
     ));
     $id = $result['id'];
@@ -406,7 +404,6 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
 
     if (!empty($payids) && !empty($code)) {
       if (!in_array($selectedProcessorValue, $payids)) {
-        echo "Sorry! This payment type does not provide discount!";
         return;
       }
     }
