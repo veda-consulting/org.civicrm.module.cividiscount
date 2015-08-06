@@ -22,7 +22,8 @@ CRM.$(function($) {
 </script>
 
 {/literal}
-
-<div id="loading" style="position: fixed; top: 50%; left:40%; background: #000; opacity:0.5; text-align: center; width:20%; line-height: 2.5; border-radius:10px; font-size:20px; font-size: 1.6vw; color:#fff;">
+<div id="loading" style="position: fixed; top: 0; bottom: 0; left: 0; right: 0;">
+  <div style="position: fixed; top: 50%; left:40%; background: #000; opacity:0.5; text-align: center; width:20%; line-height: 2.5; border-radius:10px; font-size:20px; font-size: 1.6vw; color:#fff;">
     Loading... Please wait...
+  </div>  
 </div>
