@@ -1,22 +1,25 @@
 {literal}
 
 <script language="javaScript" type="text/javascript">
-CRM.$(function($) {   
+CRM.$(function($) {
 
-      var paymentType = cj('input[name="payment_processor"]');
-      var applyDiscount = cj('input[name="_qf_Main_reload"]');
       var overlay = cj('div[id="loading"]');
+      overlay.hide();   
 
-      overlay.hide();
+      if (cj('input[name="_qf_Main_reload"]').length > 0) {
+        var paymentType = cj('input[name="payment_processor"]');
+        var applyDiscount = cj('input[name="_qf_Main_reload"]');      
 
-      applyDiscount.click(function(){
-        overlay.show();
-      });
+        applyDiscount.click(function(){
+          overlay.show();
+        });
 
-      paymentType.click(function() {
-        overlay.show();
-        applyDiscount.trigger("click");
-      });
+        paymentType.click(function() {
+          overlay.show();
+          applyDiscount.trigger("click");
+        });
+      };
+
     });
 
 </script>
