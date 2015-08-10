@@ -263,7 +263,7 @@ function cividiscount_civicrm_validateForm($name, &$fields, &$files, &$form, &$e
 function validate_email_for_discount($form){
     $new_member = TRUE;
 
-    if (!isset($form->_submitValues['email-5'])) {
+    if (empty($form->_submitValues['email-5'])) {
       return $new_member;
     }
     
@@ -272,8 +272,11 @@ function validate_email_for_discount($form){
       'email' => $form->_submitValues['email-5'],
       'is_primary' => 1,
     ));
-    $id = $result['id'];
-    $contact_id = $result['values'][$id]['contact_id'];
+
+    if (isset($result['id'])) {
+      $id = $result['id'];
+      $contact_id = $result['values'][$id]['contact_id'];
+    }
    
     if (isset($contact_id)) {
       $result = civicrm_api3('Membership', 'get', array('sequential' => 1, 'contact_id' => $contact_id));
