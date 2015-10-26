@@ -415,6 +415,7 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
 
     if (!empty($payids) && !empty($code)) {
       if (!in_array($selectedProcessorValue, $payids)) {
+        echo "Sorry! Discount is only applicable for Direct Debit!";
         return;
       }
     }
