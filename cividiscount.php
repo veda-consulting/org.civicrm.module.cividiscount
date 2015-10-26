@@ -263,7 +263,7 @@ function cividiscount_civicrm_validateForm($name, &$fields, &$files, &$form, &$e
 function validate_email_for_discount($form){
     $new_member = TRUE;
 
-    if (!isset($form->_submitValues['email-5'])) {
+    if (empty($form->_submitValues['email-5'])) {
       return $new_member;
     }
     
@@ -272,8 +272,11 @@ function validate_email_for_discount($form){
       'email' => $form->_submitValues['email-5'],
       'is_primary' => 1,
     ));
-    $id = $result['id'];
-    $contact_id = $result['values'][$id]['contact_id'];
+
+    if (isset($result['id'])) {
+      $id = $result['id'];
+      $contact_id = $result['values'][$id]['contact_id'];
+    }
    
     if (isset($contact_id)) {
       $result = civicrm_api3('Membership', 'get', array('sequential' => 1, 'contact_id' => $contact_id));
@@ -290,17 +293,25 @@ function validate_email_for_discount($form){
       array_push($subscribed_ids, $membership_type_id);
     }
 
+    // get all membership types in the form
+    $membership_ids_in_form = membership_type_ids_in_form($form);
+
+    if (array_intersect($subscribed_ids, $membership_ids_in_form)) {
+      $new_member = FALSE;
+    }
+    return $new_member;
+}
+
+
+// get all membership types in the form
+function membership_type_ids_in_form($form){
     $membership_types = $form->_membershipTypeValues;
     $membership_ids_in_form = array();
     foreach ($form->_membershipTypeValues as $value) {
       $membership_type_id = $value['id'];
       array_push($membership_ids_in_form, $membership_type_id);
     }
-
-    if (array_intersect($subscribed_ids, $membership_ids_in_form)) {
-      $new_member = FALSE;
-    }
-    return $new_member;
+    return $membership_ids_in_form;
 }
 
 /**
@@ -411,8 +422,28 @@ function cividiscount_civicrm_buildAmount($pagetype, &$form, &$amounts) {
     $form->set('_discountInfo', NULL);
     $dicountCalculater = new CRM_CiviDiscount_DiscountCalculator($pagetype, $eid, $contact_id, $code, FALSE);
     $discounts = $dicountCalculater->getDiscounts();
-     if (!empty($code) && empty($discounts)) {
-       $form->set( 'discountCodeErrorMsg', ts('The discount code you entered is invalid.'));
+
+    if (!empty($code)) {
+      if (empty($discounts)) {
+        $form->set( 'discountCodeErrorMsg', ts('The discount code you entered is invalid.'));
+      }else{
+       /*gets discounts info, even if a discount code is not applicable 
+        for the membership types in the current form */          
+
+        // Check if a discount code is applicable to any of the membership types in the form        
+        $membership_ids_in_form = membership_type_ids_in_form($form);
+        
+        $membership_ids_in_dicount_info = array();
+        foreach ($discounts as $code => $discount){
+          $membership_ids_in_dicount_info = $discount['memberships'];
+        }
+
+        if (count(array_intersect($membership_ids_in_dicount_info, $membership_ids_in_form)) == 0) {
+          $form->set( 'discountCodeErrorMsg', ts('The discount code you entered is invalid.'));
+        }
+
+      }
+       
     }
 
 
